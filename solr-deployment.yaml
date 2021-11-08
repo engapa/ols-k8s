@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ols
+  name: solr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: solr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ols
+        service: solr
+    spec:
+      initContainers:
+        - name: git-cloner
+          image: alpine/git
+          command: [ "/bin/sh", "-c", "--" ]
+          args:
+            - "rm -rf /ols/* && git clone --single-branch -- https://github.com/EBISPOT/OLS.git /tmp/ols &&
+               mv -f /tmp/ols/ols-solr/src/main/solr-5-config/* /ols/ &&
+               chmod -R 777 /ols/"
+          volumeMounts:
+            - mountPath: /ols
+              name: ols-solr-config
+      containers:
+        - image: ebispot/ols-solr:latest
+          name: solr
+          # use localhost instead service name resolution
+          args:
+            - -Dsolr.solr.home=$(SOLR_HOME)
+            - -Dsolr.data.dir=/var/solr
+            - -h $(SOLR_HOST)
+            - -p $(SOLR_PORT)
+            - -f
+          env:
+            - name: SOLR_HOME
+              value: "/mnt/ols"
+            - name: SOLR_HOST
+              value: "localhost"
+            - name: SOLR_PORT
+              value: "8983"
+          ports:
+            - containerPort: 8983
+          volumeMounts:
+            - mountPath: /var/solr
+              name: solr-data
+            - mountPath: /mnt/ols
+              name: ols-solr-config
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            httpGet:
+              scheme: "HTTP"
+              path: /solr/admin/info/system
+              port: 8983
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            httpGet:
+              scheme: "HTTP"
+              path: /solr/admin/info/system
+              port: 8983
+      restartPolicy: Always
+      volumes:
+        - name: solr-data
+          persistentVolumeClaim:
+            claimName: solr-data
+        - name: ols-solr-config
+          persistentVolumeClaim:
+            claimName: ols-solr-config

@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ols
+  name: ols-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ols-web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: ols-web
+    spec:
+      containers:
+        - image: ebispot/ols-web:stable
+          name: ols-web
+          env:
+            - name: OLS_HOME
+              value: /mnt/
+            - name: spring.data.mongodb.host
+              value: mongo
+            - name: spring.data.solr.host
+              value: http://solr:8983/solr
+            - name: ols.customisation.debrand
+              value: "false"
+            #- name: ols.customisation.logo
+            #  value: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4xL7N1PLgrLgpfuYz2n_MV6dyMSJsA7iDgJv_AXLDWmvXFVnk_W4gQvwe7kizHEZErZU&usqp=CAU
+            - name: ols.customisation.title
+              value: MyOLS
+            - name: ols.customisation.org
+              value: MyOLS
+            - name: ols.customisation.short-title
+              value: MyOLS
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /mnt/neo4j
+              name: ols-neo4j-data
+      initContainers:
+       # Depends on mongo and solr
+        - name: check-dependencies
+          image: curlimages/curl
+          command: [ "/bin/sh", "-c", "--" ]
+          args:
+            - "nc -z -v -w5 solr 8983 &&
+               nc -z -v -w5 mongo 27017"
+        - name: ols-config-importer
+          image: ebispot/ols-config-importer:stable
+          env:
+            - name: spring.data.mongodb.host
+              value: mongo
+          volumeMounts:
+            - mountPath: /config
+              name: ols-obo-config
+        - name: ols-indexer
+          image: ebispot/ols-indexer:stable
+          env:
+            - name: OLS_HOME
+              value: /opt/ols
+            - name: spring.data.mongodb.host
+              value: mongo
+            - name: spring.data.solr.host
+              value: http://solr:8983/solr
+          volumeMounts:
+            - mountPath: /opt/ols/neo4j
+              name: ols-neo4j-data
+            - mountPath: /mnt/downloads
+              name: ols-downloads
+      restartPolicy: Always
+      volumes:
+        - name: ols-downloads
+          persistentVolumeClaim:
+            claimName: ols-downloads
+        - name: ols-neo4j-data
+          persistentVolumeClaim:
+            claimName: ols-neo4j-data
+        - name: ols-obo-config
+          configMap:
+            name: ols-obo-config

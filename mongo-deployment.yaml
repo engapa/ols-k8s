@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ols
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: mongo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ols
+        service: mongo
+    spec:
+      containers:
+        - args:
+            - mongod
+          image: mongo:3.2.9
+          name: mongo
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongo-data
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            exec:
+              command:
+                - /bin/bash
+                -  -c
+                - mongo --norc --quiet --host=localhost:27017 <<< "db.getMongo()"
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            exec:
+              command:
+                - /bin/bash
+                -  -c
+                - mongo --norc --quiet --host=localhost:27017 <<< "db.getMongo()"
+      restartPolicy: Always
+
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: mongo-data

@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: ols
+  name: ols-importer
+spec:
+  #ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: ols-importer
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: ols-importer
+          image: ebispot/ols-config-importer:stable
+          env:
+            - name: spring.data.mongodb.host
+              value: mongo
+          volumeMounts:
+            - mountPath: /config
+              name: ols-obo-config
+      volumes:
+        - name: ols-obo-config
+          configMap:
+            name: ols-obo-config

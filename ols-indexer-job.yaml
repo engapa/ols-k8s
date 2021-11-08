@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: ols
+  name: ols-indexer
+spec:
+  #ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: ols-indexer
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: ols-indexer
+          image: ebispot/ols-indexer:stable
+          env:
+            - name: OLS_HOME
+              value: /opt/ols
+            - name: spring.data.mongodb.host
+              value: mongo
+            - name: spring.data.solr.host
+              value: http://solr:8983/solr
+          volumeMounts:
+            - mountPath: /opt/ols/neo4j
+              name: ols-neo4j-data
+            - mountPath: /mnt/downloads
+              name: ols-downloads
+      volumes:
+        - name: ols-downloads
+          persistentVolumeClaim:
+            claimName: ols-downloads
+        - name: ols-neo4j-data
+          persistentVolumeClaim:
+            claimName: ols-neo4j-data

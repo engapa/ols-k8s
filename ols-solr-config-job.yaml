@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: ols
+  name: ols-solr-config
+spec:
+  #ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: ols-solr-config
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: git-cloner
+          image: alpine/git
+          command: [ "/bin/sh", "-c", "--" ]
+          args:
+          - "rm -rf /ols/* && git clone --single-branch -- https://github.com/EBISPOT/OLS.git /tmp/ols &&
+             mv -f /tmp/ols/ols-solr/src/main/solr-5-config/* /ols/ &&
+             chmod -R 777 /ols/"
+          volumeMounts:
+            - mountPath: /ols
+              name: ols-solr-config
+      volumes:
+        - name: ols-solr-config
+          persistentVolumeClaim:
+            claimName: ols-solr-config

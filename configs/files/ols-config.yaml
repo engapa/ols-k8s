@@ -1,0 +1,12 @@
+"@context":
+
+ontologies:
+- id: SO
+  preferredPrefix: SO
+  title: The Sequence Ontology
+  uri: http://www.sequenceontology.org/
+  description: "A structured controlled vocabulary for sequence annotation."
+  base_uri:
+    - http://purl.obolibrary.org/obo/
+  oboSlims: false
+  ontology_purl: https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/master/Ontology_Files/so.owl
