@@ -21,7 +21,7 @@ function deploy() {
   kubectl apply $(ls configs/*-pvc.yaml | awk ' { print " -f " $1 } ')
 
   # Configuration files of ontologies
-  kubectl apply configmap ols-obo-config --from-file=configs/files/
+  kubectl create configmap ols-obo-config --from-file=configs/files/
 
   # Mongo
   kubectl apply $(ls mongo*.yaml | awk ' { print " -f " $1 } ')

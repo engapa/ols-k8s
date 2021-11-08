@@ -19,9 +19,9 @@ There would be, for instance, a coupe of ways to do that:
 
 For now, I'm going to use a basic approach based on services and deployments resources mainly.
 
-## Deploying resources
+## How To
 
-For easy full management I've created a script `main.sh` to configure and deploy all components.
+For easier management I've created a script `main.sh` to configure and deploy all components.
 This script has some useful internal functions to manage our OLS deployment on kubernetes.
 Let's take a look at each stage:
 
