@@ -46,8 +46,8 @@ Since sometimes we don't have access to public endpoints this command does a por
 
 `./main.sh port-fwd`
 
-
 SOLR    --> http://localhost:8983
+
 OLS_WEB --> http://localhost:8080
 
 To check everything were deployed successfully, go to web console and under "Ontologies" section 
@@ -56,6 +56,6 @@ to check solr is working well, finally you could also open the graph view to exp
 
 4 - **Delete**
 
-With this command we remove all resources on our namespace:
+With this command we remove all resources from our namespace:
 
 `./main.sh delete`
